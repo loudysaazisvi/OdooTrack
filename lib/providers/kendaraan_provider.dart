@@ -5,8 +5,8 @@ import '../models/kendaraan_model.dart';
 class KendaraanProvider extends ChangeNotifier {
   // Daftar kendaraan yang dimiliki user
   final List<Kendaraan> _daftarKendaraan = [
-    Kendaraan(id: '1', nama: 'Honda Beat', tahun: 2021, odometer: 14850),
-    Kendaraan(id: '2', nama: 'Yamaha NMAX', tahun: 2022, odometer: 5200),
+    Kendaraan(id: '1', nama: 'Honda Beat', tahun: 2021, nopol: 'BA 4321 KZ', odometer: 14850),
+    Kendaraan(id: '2', nama: 'Yamaha NMAX', tahun: 2022, nopol: 'B 4931 SWK', odometer: 5200),
   ];
 
   // ID kendaraan yang sedang dipilih (aktif) di dashboard
@@ -45,9 +45,7 @@ class KendaraanProvider extends ChangeNotifier {
 
   void tambahKendaraan(Kendaraan k) {
     _daftarKendaraan.add(k);
-    if (_activeKendaraanId == null) {
-      _activeKendaraanId = k.id;
-    }
+    _activeKendaraanId ??= k.id;
     notifyListeners();
   }
 }

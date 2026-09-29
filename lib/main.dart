@@ -1,20 +1,12 @@
+// lib/main.dart
+// Langkah F: Menggunakan onGenerateRoute (Provider dihapus, diganti setState)
+
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'providers/auth_provider.dart';
-import 'providers/kendaraan_provider.dart';
-import 'screens/auth/landing_screen.dart';
+import 'routes/app_routes.dart';
 import 'theme/app_colors.dart';
 
 void main() {
-  runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
-        ChangeNotifierProvider(create: (_) => KendaraanProvider()),
-      ],
-      child: const MyApp(),
-    ),
-  );
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -30,7 +22,9 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
         scaffoldBackgroundColor: AppColors.background,
       ),
-      home: const LandingScreen(),
+      // Langkah F: named routes melalui onGenerateRoute
+      initialRoute: AppRoutes.landing,
+      onGenerateRoute: AppRoutes.onGenerateRoute,
     );
   }
 }

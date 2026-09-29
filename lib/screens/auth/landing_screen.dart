@@ -1,8 +1,11 @@
+// lib/screens/auth/landing_screen.dart
+// Langkah F: Menggunakan named routes via AppRoutes
+
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
-import 'welcome_screen.dart';
+import '../../routes/app_routes.dart';
 
 class LandingScreen extends StatefulWidget {
   const LandingScreen({super.key});
@@ -15,12 +18,10 @@ class _LandingScreenState extends State<LandingScreen> {
   @override
   void initState() {
     super.initState();
-    // Navigate to Welcome screen after 2 seconds
+    // Navigasi ke Login Screen setelah 2 detik menggunakan named route
     Future.delayed(const Duration(seconds: 2), () {
-      if (!mounted) return;
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const WelcomeScreen()),
-      );
+      if (!mounted) return; // Poin 4: Check if (!mounted) return
+      Navigator.of(context).pushReplacementNamed(AppRoutes.login);
     });
   }
 
@@ -32,7 +33,6 @@ class _LandingScreenState extends State<LandingScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Placeholder for Logo
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
@@ -47,7 +47,7 @@ class _LandingScreenState extends State<LandingScreen> {
                 ],
               ),
               child: const Icon(
-                Iconsax.location_tick, // Mock logo icon
+                Iconsax.location_tick,
                 size: 64,
                 color: AppColors.primary,
               ),

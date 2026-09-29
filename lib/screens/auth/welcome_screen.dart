@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:iconsax/iconsax.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/social_login_button.dart';
-import 'login_screen.dart';
-import 'create_account_screen.dart';
+import '../../routes/app_routes.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
@@ -34,21 +32,21 @@ class WelcomeScreen extends StatelessWidget {
               const SizedBox(height: 48),
               SocialLoginButton(
                 text: 'Continue With Google',
-                iconData: Icons.g_mobiledata, // Mocking SVG with Icon
+                iconData: Icons.g_mobiledata,
                 iconColor: Colors.redAccent,
                 onPressed: () {},
               ),
               const SizedBox(height: 16),
               SocialLoginButton(
                 text: 'Continue With Facebook',
-                iconData: Icons.facebook, // Material Icon
+                iconData: Icons.facebook,
                 iconColor: Colors.blue,
                 onPressed: () {},
               ),
               const SizedBox(height: 16),
               SocialLoginButton(
                 text: 'Continue With Apple',
-                iconData: Icons.apple, // Material Icon
+                iconData: Icons.apple,
                 iconColor: Colors.black,
                 onPressed: () {},
               ),
@@ -67,10 +65,7 @@ class WelcomeScreen extends StatelessWidget {
               CustomButton(
                 text: 'Log In',
                 onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const LoginScreen()),
-                  );
+                  Navigator.pushNamed(context, AppRoutes.login);
                 },
               ),
               const SizedBox(height: 24),
@@ -82,12 +77,7 @@ class WelcomeScreen extends StatelessWidget {
                     style: AppTextStyles.bodyLight,
                   ),
                   GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const CreateAccountScreen()),
-                      );
-                    },
+                    onTap: () {},
                     child: Text(
                       'Sign Up',
                       style: AppTextStyles.body.copyWith(
