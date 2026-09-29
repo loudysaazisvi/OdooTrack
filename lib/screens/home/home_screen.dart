@@ -6,6 +6,11 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/kendaraan_provider.dart';
 import '../../models/kendaraan_model.dart';
+import '../../data/kendaraan_repository.dart';
+import '../../routes/app_routes.dart';
+import '../../widgets/state_views.dart';
+
+enum ViewStatus { loading, success, error }
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -16,6 +21,37 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
+  final _repository = KendaraanRepository();
+  ViewStatus _status = ViewStatus.loading;
+  List<Kendaraan> _items = [];
+  String _errorMessage = '';
+  bool _simulateError = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadItems();
+  }
+
+  Future<void> _loadItems() async {
+    if (_status != ViewStatus.loading) {
+      setState(() => _status = ViewStatus.loading);
+    }
+    try {
+      final items = await _repository.fetchItems(simulateError: _simulateError);
+      if (!mounted) return;
+      setState(() {
+        _items = items;
+        _status = ViewStatus.success;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = e.toString().replaceFirst('Exception: ', '');
+        _status = ViewStatus.error;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +73,7 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 24),
               _buildSectionHeader('Jadwal Servis', 'Lihat Semua'),
               const SizedBox(height: 12),
-              _buildServiceScheduleList(),
+              _buildContent(),
               const SizedBox(height: 24),
               _buildSectionHeader('Riwayat Terakhir', 'Lihat Semua'),
               const SizedBox(height: 12),
@@ -69,6 +105,53 @@ class _HomeScreenState extends State<HomeScreen> {
           BottomNavigationBarItem(icon: Icon(Iconsax.user), label: 'Profil'),
         ],
       ),
+    );
+  }
+
+  Widget _buildContent() {
+    switch (_status) {
+      case ViewStatus.loading:
+        return const Padding(
+          padding: EdgeInsets.symmetric(vertical: 32),
+          child: LoadingView(),
+        );
+      case ViewStatus.error:
+        return ErrorView(message: _errorMessage, onRetry: _loadItems);
+      case ViewStatus.success:
+        return _buildList();
+    }
+  }
+
+  Widget _buildList() {
+    if (_items.isEmpty) {
+      return const EmptyView(message: 'Belum ada data.');
+    }
+    return ListView.builder(
+      itemCount: _items.length,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemBuilder: (context, index) {
+        final item = _items[index];
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12.0),
+          child: GestureDetector(
+            onTap: () => Navigator.pushNamed(
+              context,
+              AppRoutes.detail,
+              arguments: item,
+            ),
+            child: _buildScheduleItem(
+              icon: Iconsax.setting_4,
+              title: 'Servis Berkala',
+              subtitle: item.displayName,
+              statusText: 'Aktif',
+              statusColor: AppColors.primary,
+              dueDate: '1 Bulan',
+              distance: '${item.odometer} km',
+            ),
+          ),
+        );
+      },
     );
   }
 

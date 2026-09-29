@@ -6,9 +6,8 @@ import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/social_login_button.dart';
 import 'create_account_screen.dart';
-import '../home/home_screen.dart'; // We will create this next
-import 'package:provider/provider.dart';
-import '../../providers/auth_provider.dart';
+import '../../routes/app_routes.dart'; // (4) import rute
+import '../../utils/validators.dart'; // (1) import validator
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -18,8 +17,27 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  // (2) key untuk Form dan controller
+  final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+
+  // (3) buang controller saat layar ditutup
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  // (5) dijalankan saat tombol Continue ditekan
+  void _submit() {
+    final isValid = _formKey.currentState?.validate() ?? false;
+    if (!isValid) return; // ada isian yang salah -> berhenti
+
+    // Isian benar -> pindah ke Home, Login dibuang dari stack
+    Navigator.pushReplacementNamed(context, AppRoutes.home);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,133 +54,130 @@ class _LoginScreenState extends State<LoginScreen> {
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 20),
-              Center(
-                child: Text(
-                  "Hi, Welcome Back!",
-                  style: AppTextStyles.heading1,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Center(
-                child: Text(
-                  "We're glad to see you again. Log in to manage your fleet and explore new features.",
-                  style: AppTextStyles.bodyLight,
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              const SizedBox(height: 48),
-              CustomTextField(
-                label: 'Your Email',
-                hintText: 'Email',
-                controller: _emailController,
-                keyboardType: TextInputType.emailAddress,
-                prefixIcon: Iconsax.sms,
-              ),
-              const SizedBox(height: 20),
-              CustomTextField(
-                label: 'Password',
-                hintText: 'Password',
-                isPassword: true,
-                controller: _passwordController,
-                prefixIcon: Iconsax.lock,
-              ),
-              const SizedBox(height: 12),
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () {},
+          // (6) bungkus isi dengan Form
+          child: Form(
+            key: _formKey,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 20),
+                Center(
                   child: Text(
-                    'Forgot password?',
-                    style: AppTextStyles.body.copyWith(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    "Hi, Welcome Back!",
+                    style: AppTextStyles.heading1,
                   ),
                 ),
-              ),
-              const SizedBox(height: 24),
-              CustomButton(
-                text: 'Continue',
-                onPressed: () async {
-                  final authProvider = context.read<AuthProvider>();
-                  bool success = await authProvider.login(
-                    _emailController.text,
-                    _passwordController.text,
-                  );
-                  if (success && context.mounted) {
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(builder: (_) => const HomeScreen()),
-                      (route) => false,
-                    );
-                  }
-                },
-              ),
-              const SizedBox(height: 32),
-              Row(
-                children: [
-                  const Expanded(child: Divider(color: Color(0xFFE2E8F0))),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Text('Or', style: AppTextStyles.caption),
-                  ),
-                  const Expanded(child: Divider(color: Color(0xFFE2E8F0))),
-                ],
-              ),
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SocialLoginMiniButton(
-                    iconData: Icons.g_mobiledata,
-                    iconColor: Colors.redAccent,
-                    onPressed: () {},
-                  ),
-                  const SizedBox(width: 16),
-                  SocialLoginMiniButton(
-                    iconData: Icons.facebook,
-                    iconColor: Colors.blue,
-                    onPressed: () {},
-                  ),
-                  const SizedBox(width: 16),
-                  SocialLoginMiniButton(
-                    iconData: Icons.apple,
-                    iconColor: Colors.black,
-                    onPressed: () {},
-                  ),
-                ],
-              ),
-              const SizedBox(height: 32),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    "Don't have an account? ",
+                const SizedBox(height: 12),
+                Center(
+                  child: Text(
+                    "We're glad to see you again. Log in to manage your fleet and explore new features.",
                     style: AppTextStyles.bodyLight,
+                    textAlign: TextAlign.center,
                   ),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (_) => const CreateAccountScreen()),
-                      );
-                    },
+                ),
+                const SizedBox(height: 48),
+                CustomTextField(
+                  label: 'Your Email',
+                  hintText: 'Email',
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  prefixIcon: Iconsax.sms,
+                  // (7) tambahkan validator email
+                  validator: Validators.email,
+                ),
+                const SizedBox(height: 20),
+                CustomTextField(
+                  label: 'Password',
+                  hintText: 'Password',
+                  isPassword: true,
+                  controller: _passwordController,
+                  prefixIcon: Iconsax.lock,
+                  // (8) tambahkan validator password
+                  validator: Validators.password,
+                ),
+                const SizedBox(height: 12),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () {},
                     child: Text(
-                      'Sign Up',
+                      'Forgot password?',
                       style: AppTextStyles.body.copyWith(
                         color: AppColors.primary,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 32),
-            ],
+                ),
+                const SizedBox(height: 24),
+                CustomButton(
+                  text: 'Continue',
+                  // (9) panggil _submit
+                  onPressed: _submit,
+                ),
+                const SizedBox(height: 32),
+                Row(
+                  children: [
+                    const Expanded(child: Divider(color: Color(0xFFE2E8F0))),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Text('Or', style: AppTextStyles.caption),
+                    ),
+                    const Expanded(child: Divider(color: Color(0xFFE2E8F0))),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SocialLoginMiniButton(
+                      iconData: Icons.g_mobiledata,
+                      iconColor: Colors.redAccent,
+                      onPressed: () {},
+                    ),
+                    const SizedBox(width: 16),
+                    SocialLoginMiniButton(
+                      iconData: Icons.facebook,
+                      iconColor: Colors.blue,
+                      onPressed: () {},
+                    ),
+                    const SizedBox(width: 16),
+                    SocialLoginMiniButton(
+                      iconData: Icons.apple,
+                      iconColor: Colors.black,
+                      onPressed: () {},
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 32),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      "Don't have an account? ",
+                      style: AppTextStyles.bodyLight,
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (_) => const CreateAccountScreen()),
+                        );
+                      },
+                      child: Text(
+                        'Sign Up',
+                        style: AppTextStyles.body.copyWith(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 32),
+              ],
+            ),
           ),
         ),
       ),

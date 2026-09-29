@@ -4,6 +4,7 @@ import 'providers/auth_provider.dart';
 import 'providers/kendaraan_provider.dart';
 import 'screens/auth/landing_screen.dart';
 import 'theme/app_colors.dart';
+import 'routes/app_routes.dart';
 
 void main() {
   runApp(
@@ -30,7 +31,9 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
         scaffoldBackgroundColor: AppColors.background,
       ),
-      home: const LandingScreen(),
+      initialRoute: AppRoutes.login,
+      onGenerateRoute: AppRoutes.onGenerateRoute,
+      onUnknownRoute: AppRoutes.onUnknownRoute,
     );
   }
 }
