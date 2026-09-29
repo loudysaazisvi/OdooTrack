@@ -386,41 +386,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildServiceScheduleList() {
-    return Column(
-      children: [
-        _buildScheduleItem(
-          icon: Iconsax.setting_4,
-          title: 'Tune-Up Berkala',
-          subtitle: 'Honda Beat 2021',
-          statusText: 'Segera',
-          statusColor: AppColors.statusWarning,
-          dueDate: '3 hari lagi',
-          distance: '14.950 km',
-        ),
-        const SizedBox(height: 12),
-        _buildScheduleItem(
-          icon: Icons.warning_amber_rounded,
-          title: 'Ganti Oli Mesin',
-          subtitle: 'Yamaha NMAX 2022',
-          statusText: 'Terlambat',
-          statusColor: AppColors.statusDanger,
-          dueDate: 'Terlambat 3 hari',
-          distance: '15.200 km',
-        ),
-        const SizedBox(height: 12),
-        _buildScheduleItem(
-          icon: Icons.check_circle_outline,
-          title: 'Cek Rem & Kampas',
-          subtitle: 'Honda PCX 160',
-          statusText: 'Normal',
-          statusColor: AppColors.statusNormal,
-          dueDate: '2 minggu lagi',
-          distance: '18.000 km',
-        ),
-      ],
-    );
-  }
 
   Widget _buildScheduleItem({
     required IconData icon,
