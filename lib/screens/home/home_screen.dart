@@ -5,7 +5,12 @@ import '../../theme/app_text_styles.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/kendaraan_provider.dart';
-import '../../models/kendaraan_model.dart';
+import '../../models/kendaraan_model.dart' as old_model;
+import '../../data/kendaraan_repository.dart';
+import '../../models/kendaraan.dart';
+import '../../widgets/state_views.dart';
+
+enum ViewStatus { loading, success, error }
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -14,42 +19,46 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
+  
+  final _repository = KendaraanRepository();
+  ViewStatus _status = ViewStatus.loading;
+  List<Kendaraan> _items = [];
+  String _errorMessage = '';
+  bool _simulateError = false; 
+
+  @override
+  void initState() {
+    super.initState();
+    _loadItems();
+  }
+
+  Future<void> _loadItems() async {
+    if (_status != ViewStatus.loading) {
+      setState(() => _status = ViewStatus.loading);
+    }
+    try {
+      final items = await _repository.fetchItems(simulateError: _simulateError);
+      if (!mounted) return;
+      setState(() {
+        _items = items;
+        _status = ViewStatus.success;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = e.toString().replaceFirst('Exception: ', '');
+        _status = ViewStatus.error;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildHeader(),
-              const SizedBox(height: 24),
-              _buildOdometerCard(),
-              const SizedBox(height: 24),
-              _buildQuickActions(),
-              const SizedBox(height: 24),
-              _buildPromoBanner(),
-              const SizedBox(height: 24),
-              _buildSectionHeader('Jadwal Servis', 'Lihat Semua'),
-              const SizedBox(height: 12),
-              _buildServiceScheduleList(),
-              const SizedBox(height: 24),
-              _buildSectionHeader('Riwayat Terakhir', 'Lihat Semua'),
-              const SizedBox(height: 12),
-              _buildHistoryList(),
-              const SizedBox(height: 24),
-              _buildSectionHeader('Statistik Odo', ''),
-              const SizedBox(height: 12),
-              _buildStatsGrid(),
-              const SizedBox(height: 24),
-            ],
-          ),
-        ),
+        child: _buildContent(),
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
@@ -67,6 +76,48 @@ class _HomeScreenState extends State<HomeScreen> {
           BottomNavigationBarItem(icon: Icon(Iconsax.receipt_2_1), label: 'Riwayat'),
           BottomNavigationBarItem(icon: Icon(Icons.motorcycle), label: 'Motor'),
           BottomNavigationBarItem(icon: Icon(Iconsax.user), label: 'Profil'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildContent() {
+    return switch (_status) {
+      ViewStatus.loading => const LoadingView(),
+      ViewStatus.error => ErrorView(message: _errorMessage, onRetry: _loadItems),
+      ViewStatus.success => _buildList(),
+    };
+  }
+
+  Widget _buildList() {
+    if (_items.isEmpty) {
+      return const EmptyView(message: 'Belum ada kendaraan.');
+    }
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildHeader(),
+          const SizedBox(height: 24),
+          _buildOdometerCard(),
+          const SizedBox(height: 24),
+          _buildQuickActions(),
+          const SizedBox(height: 24),
+          _buildPromoBanner(),
+          const SizedBox(height: 24),
+          _buildSectionHeader('Jadwal Servis', 'Lihat Semua'),
+          const SizedBox(height: 12),
+          _buildServiceScheduleList(),
+          const SizedBox(height: 24),
+          _buildSectionHeader('Riwayat Terakhir', 'Lihat Semua'),
+          const SizedBox(height: 12),
+          _buildHistoryList(),
+          const SizedBox(height: 24),
+          _buildSectionHeader('Statistik Odo', ''),
+          const SizedBox(height: 12),
+          _buildStatsGrid(),
+          const SizedBox(height: 24),
         ],
       ),
     );
@@ -130,7 +181,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     crossAxisAlignment: CrossAxisAlignment.baseline,
                     textBaseline: TextBaseline.alphabetic,
                     children: [
-                      Text('${context.watch<KendaraanProvider>().aktifKendaraan?.odometer ?? 0}', style: AppTextStyles.heading1.copyWith(color: Colors.white, fontSize: 32)),
+                      Text('${_items.isNotEmpty ? _items.first.odometerTerkini : 0}', style: AppTextStyles.heading1.copyWith(color: Colors.white, fontSize: 32)),
                       const SizedBox(width: 4),
                       Text('km', style: AppTextStyles.body.copyWith(color: Colors.white70)),
                     ],
@@ -140,7 +191,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Row(
                       children: [
                         Text(
-                          context.watch<KendaraanProvider>().aktifKendaraan?.displayName ?? 'Pilih Motor',
+                          _items.isNotEmpty ? _items.first.nama : 'Pilih Motor',
                           style: AppTextStyles.caption.copyWith(color: Colors.white),
                         ),
                         const SizedBox(width: 4),
