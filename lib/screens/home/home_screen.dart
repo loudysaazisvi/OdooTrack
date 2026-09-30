@@ -25,6 +25,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final _repository = KendaraanRepository();
   ViewStatus _status = ViewStatus.loading;
   List<Kendaraan> _items = [];
+  List<String> _catatanList = [];
   String _errorMessage = '';
   bool _simulateError = false; 
 
@@ -289,7 +290,10 @@ class _HomeScreenState extends State<HomeScreen> {
             _buildActionItem(Icons.edit, 'Tambah\nCatatan', const Color(0xFFFFF8E1), Colors.amber, () async {
               final hasil = await Navigator.pushNamed<String>(context, AppRoutes.catatanForm);
               if (hasil != null && mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Catatan tersimpan: $hasil')));
+                setState(() {
+                  _catatanList.insert(0, hasil);
+                });
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Catatan berhasil ditambahkan ke Riwayat!')));
               }
             }),
             _buildActionItem(Iconsax.receipt_2_1, 'Riwayat', const Color(0xFFF3E5F5), Colors.purple, () {
@@ -472,6 +476,10 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildHistoryList() {
     return Column(
       children: [
+        if (_catatanList.isNotEmpty) ..._catatanList.map((catatan) => Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: _buildHistoryItem(catatan, 'Catatan Baru', '-'),
+        )),
         _buildHistoryItem('Servis CVT', '1 Agu 2026 • 13.500 km', 'Rp 150.000'),
         const SizedBox(height: 12),
         _buildHistoryItem('Ganti Ban Belakang', '15 Jul 2026 • 11.000 km', 'Rp 220.000'),
