@@ -280,18 +280,31 @@ class _HomeScreenState extends State<HomeScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _buildActionItem(Iconsax.setting_4, 'Servis\nRutin', const Color(0xFFE3F2FD), Colors.blue),
-            _buildActionItem(Icons.water_drop_outlined, 'Ganti\nOli', const Color(0xFFFFF3E0), Colors.orange),
-            _buildActionItem(Icons.bolt, 'Kelistrikan', const Color(0xFFFFF8E1), Colors.amber),
-            _buildActionItem(Iconsax.receipt_2_1, 'Riwayat', const Color(0xFFF3E5F5), Colors.purple),
+            _buildActionItem(Iconsax.setting_4, 'Servis\nRutin', const Color(0xFFE3F2FD), Colors.blue, () {
+              Navigator.pushNamed(context, AppRoutes.detail, arguments: _items.first);
+            }),
+            _buildActionItem(Icons.water_drop_outlined, 'Ganti\nOli', const Color(0xFFFFF3E0), Colors.orange, () {
+              Navigator.pushNamed(context, AppRoutes.detail, arguments: _items.first);
+            }),
+            _buildActionItem(Icons.edit, 'Tambah\nCatatan', const Color(0xFFFFF8E1), Colors.amber, () async {
+              final hasil = await Navigator.pushNamed<String>(context, AppRoutes.catatanForm);
+              if (hasil != null && mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Catatan tersimpan: $hasil')));
+              }
+            }),
+            _buildActionItem(Iconsax.receipt_2_1, 'Riwayat', const Color(0xFFF3E5F5), Colors.purple, () {
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Fitur Riwayat belum tersedia')));
+            }),
           ],
         )
       ],
     );
   }
 
-  Widget _buildActionItem(IconData icon, String label, Color bgColor, Color iconColor) {
-    return Column(
+  Widget _buildActionItem(IconData icon, String label, Color bgColor, Color iconColor, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
       children: [
         Container(
           width: 60,
@@ -309,6 +322,7 @@ class _HomeScreenState extends State<HomeScreen> {
           style: AppTextStyles.caption.copyWith(fontWeight: FontWeight.w500),
         )
       ],
+      ),
     );
   }
 
