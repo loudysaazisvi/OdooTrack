@@ -6,9 +6,9 @@ import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/social_login_button.dart';
 import 'create_account_screen.dart';
-import '../home/home_screen.dart'; // We will create this next
-import 'package:provider/provider.dart';
-import '../../providers/auth_provider.dart';
+import '../../utils/validators.dart';
+import '../../routes/app_routes.dart';
+
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -18,8 +18,23 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final isValid = _formKey.currentState?.validate() ?? false;
+    if (!isValid) return;
+    
+    Navigator.pushReplacementNamed(context, AppRoutes.home);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,8 +51,11 @@ class _LoginScreenState extends State<LoginScreen> {
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Form(
+            key: _formKey,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 20),
               Center(
@@ -61,6 +79,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
                 prefixIcon: Iconsax.sms,
+                validator: Validators.email,
+                helperText: 'Catatan: Masukkan email dengan format yang benar (contoh: nama@gmail.com)',
               ),
               const SizedBox(height: 20),
               CustomTextField(
@@ -69,6 +89,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 isPassword: true,
                 controller: _passwordController,
                 prefixIcon: Iconsax.lock,
+                validator: Validators.password,
               ),
               const SizedBox(height: 12),
               Align(
@@ -87,20 +108,7 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 24),
               CustomButton(
                 text: 'Continue',
-                onPressed: () async {
-                  final authProvider = context.read<AuthProvider>();
-                  bool success = await authProvider.login(
-                    _emailController.text,
-                    _passwordController.text,
-                  );
-                  if (success && context.mounted) {
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(builder: (_) => const HomeScreen()),
-                      (route) => false,
-                    );
-                  }
-                },
+                onPressed: _submit,
               ),
               const SizedBox(height: 32),
               Row(
@@ -163,6 +171,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 32),
             ],
+            ),
           ),
         ),
       ),

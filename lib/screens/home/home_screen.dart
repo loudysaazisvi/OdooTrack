@@ -5,7 +5,13 @@ import '../../theme/app_text_styles.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/kendaraan_provider.dart';
-import '../../models/kendaraan_model.dart';
+import '../../models/kendaraan_model.dart' as old_model;
+import '../../data/kendaraan_repository.dart';
+import '../../models/kendaraan.dart';
+import '../../widgets/state_views.dart';
+import '../../routes/app_routes.dart';
+
+enum ViewStatus { loading, success, error }
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -13,43 +19,48 @@ class HomeScreen extends StatefulWidget {
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
-
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
+  
+  final _repository = KendaraanRepository();
+  ViewStatus _status = ViewStatus.loading;
+  List<Kendaraan> _items = [];
+  List<String> _catatanList = [];
+  String _errorMessage = '';
+  bool _simulateError = false; 
+
+  @override
+  void initState() {
+    super.initState();
+    _loadItems();
+  }
+
+  Future<void> _loadItems() async {
+    if (_status != ViewStatus.loading) {
+      setState(() => _status = ViewStatus.loading);
+    }
+    try {
+      final items = await _repository.fetchItems(simulateError: _simulateError);
+      if (!mounted) return;
+      setState(() {
+        _items = items;
+        _status = ViewStatus.success;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = e.toString().replaceFirst('Exception: ', '');
+        _status = ViewStatus.error;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildHeader(),
-              const SizedBox(height: 24),
-              _buildOdometerCard(),
-              const SizedBox(height: 24),
-              _buildQuickActions(),
-              const SizedBox(height: 24),
-              _buildPromoBanner(),
-              const SizedBox(height: 24),
-              _buildSectionHeader('Jadwal Servis', 'Lihat Semua'),
-              const SizedBox(height: 12),
-              _buildServiceScheduleList(),
-              const SizedBox(height: 24),
-              _buildSectionHeader('Riwayat Terakhir', 'Lihat Semua'),
-              const SizedBox(height: 12),
-              _buildHistoryList(),
-              const SizedBox(height: 24),
-              _buildSectionHeader('Statistik Odo', ''),
-              const SizedBox(height: 12),
-              _buildStatsGrid(),
-              const SizedBox(height: 24),
-            ],
-          ),
-        ),
+        child: _buildContent(),
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
@@ -67,6 +78,48 @@ class _HomeScreenState extends State<HomeScreen> {
           BottomNavigationBarItem(icon: Icon(Iconsax.receipt_2_1), label: 'Riwayat'),
           BottomNavigationBarItem(icon: Icon(Icons.motorcycle), label: 'Motor'),
           BottomNavigationBarItem(icon: Icon(Iconsax.user), label: 'Profil'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildContent() {
+    return switch (_status) {
+      ViewStatus.loading => const LoadingView(),
+      ViewStatus.error => ErrorView(message: _errorMessage, onRetry: _loadItems),
+      ViewStatus.success => _buildList(),
+    };
+  }
+
+  Widget _buildList() {
+    if (_items.isEmpty) {
+      return const EmptyView(message: 'Belum ada kendaraan.');
+    }
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildHeader(),
+          const SizedBox(height: 24),
+          _buildOdometerCard(),
+          const SizedBox(height: 24),
+          _buildQuickActions(),
+          const SizedBox(height: 24),
+          _buildPromoBanner(),
+          const SizedBox(height: 24),
+          _buildSectionHeader('Jadwal Servis', 'Lihat Semua'),
+          const SizedBox(height: 12),
+          _buildServiceScheduleList(),
+          const SizedBox(height: 24),
+          _buildSectionHeader('Riwayat Terakhir', 'Lihat Semua'),
+          const SizedBox(height: 12),
+          _buildHistoryList(),
+          const SizedBox(height: 24),
+          _buildSectionHeader('Statistik Odo', ''),
+          const SizedBox(height: 12),
+          _buildStatsGrid(),
+          const SizedBox(height: 24),
         ],
       ),
     );
@@ -95,21 +148,27 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildOdometerCard() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: AppColors.primaryGradient,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withAlpha(76),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Column(
+    return GestureDetector(
+      onTap: () {
+        if (_items.isNotEmpty) {
+          Navigator.pushNamed(context, AppRoutes.detail, arguments: _items.first);
+        }
+      },
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          gradient: AppColors.primaryGradient,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primary.withAlpha(76),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Senin, 21 September 2026', style: AppTextStyles.caption.copyWith(color: Colors.white70)),
@@ -130,7 +189,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     crossAxisAlignment: CrossAxisAlignment.baseline,
                     textBaseline: TextBaseline.alphabetic,
                     children: [
-                      Text('${context.watch<KendaraanProvider>().aktifKendaraan?.odometer ?? 0}', style: AppTextStyles.heading1.copyWith(color: Colors.white, fontSize: 32)),
+                      Text('${_items.isNotEmpty ? _items.first.odometerTerkini : 0}', style: AppTextStyles.heading1.copyWith(color: Colors.white, fontSize: 32)),
                       const SizedBox(width: 4),
                       Text('km', style: AppTextStyles.body.copyWith(color: Colors.white70)),
                     ],
@@ -140,7 +199,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Row(
                       children: [
                         Text(
-                          context.watch<KendaraanProvider>().aktifKendaraan?.displayName ?? 'Pilih Motor',
+                          _items.isNotEmpty ? _items.first.tipe : 'Pilih Motor',
                           style: AppTextStyles.caption.copyWith(color: Colors.white),
                         ),
                         const SizedBox(width: 4),
@@ -164,6 +223,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           )
         ],
+      ),
       ),
     );
   }
@@ -221,18 +281,34 @@ class _HomeScreenState extends State<HomeScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _buildActionItem(Iconsax.setting_4, 'Servis\nRutin', const Color(0xFFE3F2FD), Colors.blue),
-            _buildActionItem(Icons.water_drop_outlined, 'Ganti\nOli', const Color(0xFFFFF3E0), Colors.orange),
-            _buildActionItem(Icons.bolt, 'Kelistrikan', const Color(0xFFFFF8E1), Colors.amber),
-            _buildActionItem(Iconsax.receipt_2_1, 'Riwayat', const Color(0xFFF3E5F5), Colors.purple),
+            _buildActionItem(Iconsax.setting_4, 'Servis\nRutin', const Color(0xFFE3F2FD), Colors.blue, () {
+              Navigator.pushNamed(context, AppRoutes.detail, arguments: _items.first);
+            }),
+            _buildActionItem(Icons.water_drop_outlined, 'Ganti\nOli', const Color(0xFFFFF3E0), Colors.orange, () {
+              Navigator.pushNamed(context, AppRoutes.detail, arguments: _items.first);
+            }),
+            _buildActionItem(Icons.edit, 'Tambah\nCatatan', const Color(0xFFFFF8E1), Colors.amber, () async {
+              final hasil = await Navigator.pushNamed<String>(context, AppRoutes.catatanForm);
+              if (hasil != null && mounted) {
+                setState(() {
+                  _catatanList.insert(0, hasil);
+                });
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Catatan berhasil ditambahkan ke Riwayat!')));
+              }
+            }),
+            _buildActionItem(Iconsax.receipt_2_1, 'Riwayat', const Color(0xFFF3E5F5), Colors.purple, () {
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Fitur Riwayat belum tersedia')));
+            }),
           ],
         )
       ],
     );
   }
 
-  Widget _buildActionItem(IconData icon, String label, Color bgColor, Color iconColor) {
-    return Column(
+  Widget _buildActionItem(IconData icon, String label, Color bgColor, Color iconColor, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
       children: [
         Container(
           width: 60,
@@ -250,6 +326,7 @@ class _HomeScreenState extends State<HomeScreen> {
           style: AppTextStyles.caption.copyWith(fontWeight: FontWeight.w500),
         )
       ],
+      ),
     );
   }
 
@@ -399,6 +476,10 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildHistoryList() {
     return Column(
       children: [
+        if (_catatanList.isNotEmpty) ..._catatanList.map((catatan) => Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: _buildHistoryItem(catatan, 'Catatan Baru', '-'),
+        )),
         _buildHistoryItem('Servis CVT', '1 Agu 2026 • 13.500 km', 'Rp 150.000'),
         const SizedBox(height: 12),
         _buildHistoryItem('Ganti Ban Belakang', '15 Jul 2026 • 11.000 km', 'Rp 220.000'),
