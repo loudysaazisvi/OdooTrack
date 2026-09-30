@@ -9,6 +9,7 @@ import '../../models/kendaraan_model.dart' as old_model;
 import '../../data/kendaraan_repository.dart';
 import '../../models/kendaraan.dart';
 import '../../widgets/state_views.dart';
+import '../../routes/app_routes.dart';
 
 enum ViewStatus { loading, success, error }
 
