@@ -80,6 +80,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 keyboardType: TextInputType.emailAddress,
                 prefixIcon: Iconsax.sms,
                 validator: Validators.email,
+                helperText: 'Catatan: Masukkan email dengan format yang benar (contoh: nama@gmail.com)',
               ),
               const SizedBox(height: 20),
               CustomTextField(

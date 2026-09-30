@@ -10,6 +10,7 @@ class CustomTextField extends StatefulWidget {
   final TextEditingController? controller;
   final TextInputType keyboardType;
   final IconData? prefixIcon;
+  final String? helperText;
   final String? Function(String?)? validator;
 
   const CustomTextField({
@@ -20,6 +21,7 @@ class CustomTextField extends StatefulWidget {
     this.controller,
     this.keyboardType = TextInputType.text,
     this.prefixIcon,
+    this.helperText,
     this.validator,
   });
 
@@ -58,6 +60,8 @@ class _CustomTextFieldState extends State<CustomTextField> {
           decoration: InputDecoration(
             hintText: widget.hintText,
             hintStyle: AppTextStyles.bodyLight,
+            helperText: widget.helperText,
+            helperStyle: AppTextStyles.caption.copyWith(color: AppColors.textLight, fontSize: 11),
             prefixIcon: widget.prefixIcon != null
                 ? Icon(widget.prefixIcon, color: AppColors.textLight, size: 20)
                 : null,
