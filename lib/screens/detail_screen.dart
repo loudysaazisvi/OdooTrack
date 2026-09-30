@@ -33,14 +33,14 @@ class _DetailScreenState extends State<DetailScreen> {
     final item = widget.item;
     return Scaffold(
       appBar: AppBar(
-        title: Text(item.nama),
+        title: Text(item.tipe),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Text(item.nama, style: Theme.of(context).textTheme.headlineSmall),
+          Text(item.tipe, style: Theme.of(context).textTheme.headlineSmall),
           const SizedBox(height: 4),
-          Text(item.platNomor),
+          Text(item.nomorPolisi),
           const SizedBox(height: 16),
           Text('Odometer: ${item.odometerTerkini} km'),
           const Divider(height: 32),

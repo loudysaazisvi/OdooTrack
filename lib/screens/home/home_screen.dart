@@ -18,7 +18,7 @@ class HomeScreen extends StatefulWidget {
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
-
+class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
   
   final _repository = KendaraanRepository();
@@ -146,21 +146,27 @@ class HomeScreen extends StatefulWidget {
   }
 
   Widget _buildOdometerCard() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: AppColors.primaryGradient,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withAlpha(76),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Column(
+    return GestureDetector(
+      onTap: () {
+        if (_items.isNotEmpty) {
+          Navigator.pushNamed(context, AppRoutes.detail, arguments: _items.first);
+        }
+      },
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          gradient: AppColors.primaryGradient,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primary.withAlpha(76),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Senin, 21 September 2026', style: AppTextStyles.caption.copyWith(color: Colors.white70)),
@@ -191,7 +197,7 @@ class HomeScreen extends StatefulWidget {
                     child: Row(
                       children: [
                         Text(
-                          _items.isNotEmpty ? _items.first.nama : 'Pilih Motor',
+                          _items.isNotEmpty ? _items.first.tipe : 'Pilih Motor',
                           style: AppTextStyles.caption.copyWith(color: Colors.white),
                         ),
                         const SizedBox(width: 4),
@@ -215,6 +221,7 @@ class HomeScreen extends StatefulWidget {
             ],
           )
         ],
+      ),
       ),
     );
   }
